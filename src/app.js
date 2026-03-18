@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit")
 const authRoutes = require("./modules/auth/routes")
 const transactionRoutes = require("./modules/transaction/routes")
 const categoryRoutes = require("./modules/category/routes")
+const analyticRoutes = require("./modules/analytic/routes")
 
 const authMiddleware = require("../middleware/auth")
 const errorMiddleware = require("../middleware/error")
@@ -31,6 +32,7 @@ app.use(express.static("public"))
 app.use("/api/auth", authRoutes)
 app.use("/api/transaction", authMiddleware, transactionRoutes)
 app.use("/api/category", authMiddleware, categoryRoutes)
+app.use("/api/analytic", authMiddleware, analyticRoutes)
 
 app.use((req, res, next) => {
     const error = new ApiError("Route not found", 404)
