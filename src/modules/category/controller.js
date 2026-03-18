@@ -27,7 +27,7 @@ exports.getCats = async (req, res, next) => {
     const data = await cS.getCats(userId);
 
     if (data.length === 0) {
-      throw new ApiError("Category not found!", 404);
+      throw new ApiError("Categories not found!", 404);
     }
 
     res.status(200).json({
