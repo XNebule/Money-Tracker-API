@@ -6,7 +6,7 @@ const options = {
     info: {
       title: "Money Tracker API",
       version: "1.0.0",
-      description: "Personal finance tracker backend API",
+      description: "...",
     },
     servers: [
       {
