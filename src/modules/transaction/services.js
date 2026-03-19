@@ -1,5 +1,6 @@
 const client = require("../../config/dbase");
 const ApiError = require("../../utils/ApiError");
+const { deleteCache } = require("../../utils/cache");
 
 exports.createTransaction = async ({
   title,
@@ -27,6 +28,11 @@ exports.createTransaction = async ({
     RETURNING *`,
     [title, amount, userId, categoryId || null, type, date],
   );
+
+  await deleteCache(`cashflow${userId}`);
+  await deleteCache(`monthly-expense${userId}`);
+  await deleteCache(`category-breakdown${userId}`);
+  await deleteCache(`insight${userId}`);
 
   return result.rows[0];
 };
@@ -163,14 +169,28 @@ exports.updateTransaction = async (
     [title, amount, type, date, categoryId || null, id, userId],
   );
 
+  if (result.rows.length) {
+    await deleteCache(`cashflow${userId}`);
+    await deleteCache(`monthly-expense${userId}`);
+    await deleteCache(`category-breakdown${userId}`);
+    await deleteCache(`insight${userId}`);
+  }
+
   return result.rows[0];
 };
 
 exports.deleteTransaction = async (id, userId) => {
-    const result = await client.query(
-        `DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING *`,
-        [id, userId]
-    )
-    
-    return result.rows[0]
-}
+  const result = await client.query(
+    `DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING *`,
+    [id, userId],
+  );
+
+  if (result.rows.length) {
+    await deleteCache(`cashflow${userId}`);
+    await deleteCache(`monthly-expense${userId}`);
+    await deleteCache(`category-breakdown${userId}`);
+    await deleteCache(`insight${userId}`);
+  }
+
+  return result.rows[0];
+};

@@ -1,4 +1,5 @@
 const client = require("../../config/dbase");
+const { getCache, setCache } = require("../../utils/cache");
 
 exports.getCashflow = async (userId) => {
   const result = await client.query(
@@ -23,6 +24,13 @@ exports.getCashflow = async (userId) => {
 };
 
 exports.getMonthExpenses = async (userId) => {
+  const cacheKey = `monthly-expense: ${userId}`;
+  const cached = await getCache(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const result = await client.query(
     `
         SELECT
@@ -37,10 +45,20 @@ exports.getMonthExpenses = async (userId) => {
     [userId],
   );
 
-  return result.rows;
+  const data = result.rows;
+  await setCache(cacheKey, data, 120);
+
+  return data;
 };
 
 exports.getCatBreakdown = async (userId) => {
+  const cacheKey = `category-breakdown: ${userId}`;
+  const cached = await getCache(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const result = await client.query(
     `
         SELECT
@@ -55,11 +73,19 @@ exports.getCatBreakdown = async (userId) => {
         `,
     [userId],
   );
-
-  return result.rows;
+  const data = result.rows;
+  await setCache(cacheKey, data, 120);
+  return data;
 };
 
 exports.getInsights = async (userId) => {
+  const cacheKey = `insight: ${userId}`
+  const cached = await getCache(cacheKey)
+
+  if (cached) {
+    return cached
+  }
+
   const summarQuery = `
     SELECT
       SUM(CASE WHEN type = 'revenue' THEN amount ELSE 0 END) AS revenue,
@@ -102,7 +128,7 @@ exports.getInsights = async (userId) => {
   const revenue = Math.round(summary.rows[0].revenue) || 0;
   const expense = Math.round(summary.rows[0].expense) || 0;
 
-  return data = {
+  const data = {
     totalRevenue: revenue,
     totalExpense: expense,
     balance: revenue - expense,
@@ -115,4 +141,8 @@ exports.getInsights = async (userId) => {
         }
       : null,
   };
+
+  await setCache(cacheKey, data, 120)
+
+  return data
 };

@@ -11,10 +11,13 @@ module.exports = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded;
+    console.log("Decoded token: ", decoded)
+
+    req.user = {
+      userId: decoded.userId
+    }
     next();
   } catch (err) {
     err.status = 401;
